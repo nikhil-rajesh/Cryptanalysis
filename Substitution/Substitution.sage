@@ -1,39 +1,46 @@
 import argparse
 
 ### To encrypt a single letter
-def shiftEncryptLetter(letter, shift):
+def subEncryptLetter(letter, key):
     # if not an alphabet dont encrypt
     if not letter.isalpha():
         return ''
-    # (a + shift)%26
-    return chr((ord(letter.upper()) - ord('A') + shift)%26 + ord('A'))
+    # return corresponding character in key
+    return key[ord(letter.upper()) - ord('A')]
 
 ### To decrypt a single letter
-def shiftDecryptLetter(letter, shift):
-    # if not an alphabet dont decrypt
+def subDecryptLetter(letter, key):
     if not letter.isalpha():
-        return letter
-    
-    # do encryption with additive inverse of shift
-    return shiftEncryptLetter(letter, 26 - shift)
+        return ''
+
+    # return character corresponding to index of letter in key
+    return chr(key.index(letter.upper()) + ord('A'))
 
 ### To encrypt a line
-def shiftEncrypt(line, shift):
-    return ''.join([shiftEncryptLetter(c,shift) for c in line])
+def subEncrypt(line, key):
+    return ''.join([subEncryptLetter(c, key) for c in line])
 
 ### To decrypt a line
-def shiftDecrypt(line, shift):
-    return ''.join([shiftDecryptLetter(d,shift) for d in line])
+def subDecrypt(line, key):
+    return ''.join([subDecryptLetter(d, key) for d in line])
 
 ### Main Function
 def main():
     # Arguments parsing
     parser = argparse.ArgumentParser()
     parser.add_argument("-m", "--mode", required=True, choices=['encrypt','decrypt'], help="Encrypt or Decrypt the file")
-    parser.add_argument("-s", "--shift", required=True, type=int, help="Shift Value")
+    parser.add_argument("-k", "--key", required=True, help="File containing key")
     parser.add_argument("-i", "--input-file", required=True, help="Input file with plaintext or ciphertext")
     parser.add_argument("-o", "--output-file", required=True, help="Output file name")
     args = parser.parse_args()
+
+    keyFile = open(args.key, "rt")
+    # [:-1] is to remove newline at end
+    key = keyFile.readline().upper()[:-1]
+
+    if len(key) != 26:
+        print("Key length should be 26")
+        return
 
     inputFile = open(args.input_file, "rt")
     outputFile = open(args.output_file, "wt")
@@ -41,10 +48,10 @@ def main():
     #encrypt or decrypt depending on mode flag
     if args.mode == "encrypt":
         for line in inputFile:
-            outputFile.write(shiftEncrypt(line, args.shift) + "\n")
+            outputFile.write(subEncrypt(line, key) + "\n")
     elif args.mode == "decrypt":
         for line in inputFile:
-            outputFile.write(shiftDecrypt(line, args.shift))
+            outputFile.write(subDecrypt(line, key) + "\n")
 
     inputFile.close()
     outputFile.close()

@@ -69,7 +69,7 @@ def main():
     #encrypt or decrypt depending on mode flag
     if args.mode == "encrypt":
         for line in inputFile:
-            outputFile.write(affineEncrypt(line, args.a, args.b))
+            outputFile.write(affineEncrypt(line, args.a, args.b) + "\n")
     elif args.mode == "decrypt":
         for line in inputFile:
             outputFile.write(affineDecrypt(line, args.a, args.b))
