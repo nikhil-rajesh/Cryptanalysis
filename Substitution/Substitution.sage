@@ -1,18 +1,18 @@
 import argparse
+import re
+
+def normalize_input(input_string):
+    """ Helper function to remove non alphanumeric characters """
+    output = re.sub(r'\W+', '', input_string)
+    return output.upper()
 
 ### To encrypt a single letter
 def subEncryptLetter(letter, key):
-    # if not an alphabet dont encrypt
-    if not letter.isalpha():
-        return ''
     # return corresponding character in key
     return key[ord(letter.upper()) - ord('A')]
 
 ### To decrypt a single letter
 def subDecryptLetter(letter, key):
-    if not letter.isalpha():
-        return ''
-
     # return character corresponding to index of letter in key
     return chr(key.index(letter.upper()) + ord('A'))
 
@@ -45,13 +45,13 @@ def main():
     inputFile = open(args.input_file, "rt")
     outputFile = open(args.output_file, "wt")
 
+    normalizedInput = normalize_input(inputFile.read())
+
     #encrypt or decrypt depending on mode flag
     if args.mode == "encrypt":
-        for line in inputFile:
-            outputFile.write(subEncrypt(line, key) + "\n")
+        outputFile.write(subEncrypt(normalizedInput, key) + "\n")
     elif args.mode == "decrypt":
-        for line in inputFile:
-            outputFile.write(subDecrypt(line, key) + "\n")
+        outputFile.write(subDecrypt(normalizedInput, key) + "\n")
 
     inputFile.close()
     outputFile.close()

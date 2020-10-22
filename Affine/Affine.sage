@@ -1,19 +1,18 @@
 import argparse
+import re
+
+def normalize_input(input_string):
+    """ Helper function to remove non alphanumeric characters """
+    output = re.sub(r'\W+', '', input_string)
+    return output.upper()
 
 ### To encrypt a single letter
 def affineEncryptLetter(letter, a, b):
-    # if not an alphabet dont encrypt
-    if not letter.isalpha():
-        return ''
     # (a*letter + b)%26
     return chr((a*(ord(letter.upper()) - ord('A')) + b)%26 + ord('A')) 
 
 ### To decrypt a single letter
 def affineDecryptLetter(letter, a, b):
-    # if not an alphabet dont decrypt
-    if not letter.isalpha():
-        return letter
-
     # (modInv(a)*(letter - b))%26
     return chr((inverse_mod(a, 26)*(ord(letter.upper()) - ord('A') - b))%26 + ord('A')) 
 
@@ -66,13 +65,13 @@ def main():
     outputFile = open(args.output_file, "wt")
     keyFile = open("key_"+args.output_file, "wt")
 
+    normalizedInput = normalize_input(inputFile.read())
+
     #encrypt or decrypt depending on mode flag
     if args.mode == "encrypt":
-        for line in inputFile:
-            outputFile.write(affineEncrypt(line, args.a, args.b) + "\n")
+        outputFile.write(affineEncrypt(normalizedInput, args.a, args.b) + "\n")
     elif args.mode == "decrypt":
-        for line in inputFile:
-            outputFile.write(affineDecrypt(line, args.a, args.b))
+        outputFile.write(affineDecrypt(normalizedInput, args.a, args.b) + "\n")
 
     #write keys to keyFile
     keyFile.write("A = " + str(args.a) + "\n")

@@ -1,19 +1,18 @@
 import argparse
+import re
+
+def normalize_input(input_string):
+    """ Helper function to remove non alphanumeric characters """
+    output = re.sub(r'\W+', '', input_string)
+    return output.upper()
 
 ### To encrypt a single letter
 def shiftEncryptLetter(letter, shift):
-    # if not an alphabet dont encrypt
-    if not letter.isalpha():
-        return ''
     # (a + shift)%26
     return chr((ord(letter.upper()) - ord('A') + shift)%26 + ord('A'))
 
 ### To decrypt a single letter
 def shiftDecryptLetter(letter, shift):
-    # if not an alphabet dont decrypt
-    if not letter.isalpha():
-        return letter
-    
     # do encryption with additive inverse of shift
     return shiftEncryptLetter(letter, 26 - shift)
 
@@ -38,13 +37,13 @@ def main():
     inputFile = open(args.input_file, "rt")
     outputFile = open(args.output_file, "wt")
 
+    normalizedInput = normalize_input(inputFile.read())
+
     #encrypt or decrypt depending on mode flag
     if args.mode == "encrypt":
-        for line in inputFile:
-            outputFile.write(shiftEncrypt(line, args.shift) + "\n")
+        outputFile.write(shiftEncrypt(normalizedInput, args.shift) + "\n")
     elif args.mode == "decrypt":
-        for line in inputFile:
-            outputFile.write(shiftDecrypt(line, args.shift))
+        outputFile.write(shiftDecrypt(normalizedInput, args.shift) + "\n")
 
     inputFile.close()
     outputFile.close()
