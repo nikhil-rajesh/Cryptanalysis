@@ -5,7 +5,7 @@ def affineEncryptLetter(letter, a, b):
     # if not an alphabet dont encrypt
     if not letter.isalpha():
         return ''
-# (a*letter + b)%26
+    # (a*letter + b)%26
     return chr((a*(ord(letter.upper()) - ord('A')) + b)%26 + ord('A')) 
 
 ### To decrypt a single letter
