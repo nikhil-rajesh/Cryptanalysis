@@ -1,16 +1,6 @@
 import argparse
 import re
-
-def normalize_input(input_string):
-    """ Helper function to remove non alphanumeric characters """
-    output = re.sub(r'\W+', '', input_string)
-    return output.upper()
-
-def letterToNumber(letter):
-    return ord(letter.upper()) - ord('A')
-
-def numberToLetter(number):
-    return chr(number%26 + ord('A'))
+from helper import normalize_input, n2l, l2n
 
 def hillEncrypt(plaintext, key):
     if not key.is_square() :
@@ -19,20 +9,20 @@ def hillEncrypt(plaintext, key):
     #to pad to make equal length blocks
     if len(plaintext)%blockLength != 0:
         plaintext += 'Z'*(blockLength - len(plaintext)%blockLength)
-    ptNumberList = [ord(c) - ord('A') for c in plaintext]
+    ptNumberList = [l2n(c) for c in plaintext]
     ptMatrix = matrix(Integers(26), ZZ(len(ptNumberList)/blockLength), blockLength, ptNumberList)
     ctMatrix = (ptMatrix*key).mod(26)
-    return "".join([numberToLetter(int(c)) for c in ctMatrix.list()])
+    return "".join([n2l(int(c)) for c in ctMatrix.list()])
 
 def hillDecrypt(ciphertext, key):
     if not key.is_square() :
         return "Key is not a square matrix"
     blockLength = key.dimensions()[0]
     keyInverse = key.inverse()
-    ctNumberList = [ord(c) - ord('A') for c in ciphertext]
+    ctNumberList = [l2n(c) for c in ciphertext]
     ctMatrix = matrix(Integers(26), ZZ(len(ctNumberList)/blockLength), blockLength, ctNumberList)
     ptMatrix = (ctMatrix*keyInverse).mod(26)
-    return "".join([numberToLetter(int(c)) for c in ptMatrix.list()])
+    return "".join([n2l(int(c)) for c in ptMatrix.list()])
 
 ### Main Function
 def main():

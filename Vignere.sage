@@ -1,23 +1,13 @@
 import argparse
 import re
-
-def normalize_input(input_string):
-    """ Helper function to remove non alphanumeric characters """
-    output = re.sub(r'\W+', '', input_string)
-    return output.upper()
-
-def letterToNumber(letter):
-    return ord(letter.upper()) - ord('A')
-
-def numberToLetter(number):
-    return chr(number%26 + ord('A'))
+from helper import normalize_input, n2l, l2n, split
 
 ### To encrypt a line
 def vignereEncrypt(plaintext, key):
     ciphertext = ""
     keyIndex = 0
     for c in plaintext:
-        ciphertext += numberToLetter(letterToNumber(c) + letterToNumber(key[keyIndex]))
+        ciphertext += n2l(l2n(c) + l2n(key[keyIndex]))
         keyIndex = (keyIndex + 1)%len(key)
 
     return ciphertext
@@ -26,12 +16,12 @@ def vignereEncrypt(plaintext, key):
 def vignereDecrypt(ciphertext, key):
     inverseKey = []
     for c in key:
-        inverseKey.append(26 - letterToNumber(c))
+        inverseKey.append(26 - l2n(c))
 
     plaintext = ""
     keyIndex = 0
     for letter in ciphertext:
-        plaintext += numberToLetter(letterToNumber(letter) + inverseKey[keyIndex])
+        plaintext += n2l(l2n(letter) + inverseKey[keyIndex])
         keyIndex = (keyIndex + 1)%len(key)
 
     return plaintext

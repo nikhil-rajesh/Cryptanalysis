@@ -1,11 +1,6 @@
 import argparse
 import re
-import wordninja
-
-def normalize_input(input_string):
-    """ Helper function to remove non alphanumeric characters """
-    output = re.sub(r'\W+', '', input_string)
-    return output.upper()
+from helper import normalize_input, split, wordlist
 
 def transpositionEncrypt(plaintext, keyList, nColumns):
     ciphertext = ""
@@ -64,10 +59,7 @@ def transpositionDecrypt(ciphertext, keyList, nColumns):
     return plaintext
 
 def attackTransposition(ciphertext):
-    #Open Dictionary of words
-    words = open('../wordlist').read().split()
-    words = dict((i,1) for i in words)
-
+    words = wordlist()
     allDivisors = False
     possiblePlaintexts = []
     #Find divisors of the ciphertext length
@@ -88,7 +80,7 @@ def attackTransposition(ciphertext):
         for key in keys:
             cost = 0
             plaintext = transpositionDecrypt(ciphertext, key, len(key))
-            plaintext = wordninja.split(plaintext)
+            plaintext = split(plaintext)
             for word in plaintext:
                 if word.lower() in words:
                     cost += len(word)

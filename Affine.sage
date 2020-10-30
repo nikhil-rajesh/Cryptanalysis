@@ -1,26 +1,12 @@
 import argparse
 import re
-import wordninja
+from helper import l2n, n2l, normalize_input, split
 
 coprimes = [1, 3, 5, 7, 9, 11, 15, 17, 19, 21, 23, 25]
-
-""" Helper function to convert Letter to Number """
-def l2n(letter):
-    return ord(letter.upper()) - ord('A')
-
-""" Helper function to convert Number to Letter """
-def n2l(number):
-    return chr(number%26 + ord('A'))
-
-""" Helper function to remove non alphanumeric characters """
-def normalize_input(input_string):
-    output = re.sub(r'\W+', '', input_string)
-    return output.upper()
 
 """ Generates a random element coprime to 26 """
 def random_coprime():
     return coprimes[ZZ.random_element(len(coprimes))]
-
 """ To encrypt in Affine """
 def affineEncrypt(line, a, b):
     return ''.join([ n2l(a*l2n(c) + b) for c in line ])
@@ -39,7 +25,7 @@ def attackAffine_brute(ciphertext):
     for a in coprimes:
         for b in range(1, 27):
             plaintext = affineDecrypt(ciphertext, a, b)
-            plaintext = wordninja.split(plaintext)
+            plaintext = split(plaintext)
             cost = 0
             for word in plaintext:
                 if word.lower() in words:
@@ -134,7 +120,8 @@ def main():
         if args.mode == "encrypt":
             outputFile.write(affineEncrypt(normalizedInput, args.a, args.b) + "\n")
         elif args.mode == "decrypt":
-            outputFile.write(affineDecrypt(normalizedInput, args.a, args.b) + "\n")
+            plaintext = affineDecrypt(normalizedInput, args.a, args.b)
+            outputFile.write(' '.join(split(plaintext)))
 
         #write keys to keyFile
         keyFile.write("A = " + str(args.a) + "\n")

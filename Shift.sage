@@ -1,16 +1,11 @@
 import argparse
 import re
-import wordninja
-
-def normalize_input(input_string):
-    """ Helper function to remove non alphanumeric characters """
-    output = re.sub(r'\W+', '', input_string)
-    return output.upper()
+from helper import normalize_input, split, l2n, n2l, wordlist
 
 ### To encrypt a single letter
 def shiftEncryptLetter(letter, shift):
     # (a + shift)%26
-    return chr((ord(letter.upper()) - ord('A') + shift)%26 + ord('A'))
+    return n2l(l2n(letter) + shift)
 
 ### To decrypt a single letter
 def shiftDecryptLetter(letter, shift):
@@ -27,14 +22,12 @@ def shiftDecrypt(line, shift):
 
 def attackShift(ciphertext):
     #Open Dictionary of words
-    words = open('../wordlist').read().split()
-    words = dict((i,1) for i in words)
-
+    words = wordlist()
     possiblePlaintexts = []
 
     for key in range(26):
         plaintext = shiftDecrypt(ciphertext, key)
-        plaintext = wordninja.split(plaintext)
+        plaintext = split(plaintext)
         cost = 0
         for word in plaintext:
             if word.lower() in words:
@@ -75,7 +68,8 @@ def main():
         if args.mode == "encrypt":
             outputFile.write(shiftEncrypt(normalizedInput, args.shift) + "\n")
         elif args.mode == "decrypt":
-            outputFile.write(shiftDecrypt(normalizedInput, args.shift) + "\n")
+            plaintext = shiftDecrypt(normalizedInput, args.shift)
+            outputFile.write(' '.join(split(plaintext)))
 
     inputFile.close()
     outputFile.close()

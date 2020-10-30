@@ -1,10 +1,6 @@
 import argparse
 import re
-
-def normalize_input(input_string):
-    """ Helper function to remove non alphanumeric characters """
-    output = re.sub(r'\W+', '', input_string)
-    return output.upper()
+from helper import normalize_input
 
 ### To encrypt a single letter
 def subEncryptLetter(letter, key):
