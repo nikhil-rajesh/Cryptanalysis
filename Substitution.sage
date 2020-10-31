@@ -1,39 +1,34 @@
 import argparse
 import re
-from helper import normalize_input
+from helper import normalize_input, l2n, n2l
 
-### To encrypt a single letter
-def subEncryptLetter(letter, key):
-    # return corresponding character in key
-    return key[ord(letter.upper()) - ord('A')]
+""" Generates the inverse of the key for decryption """
+def inverseKey(key):
+    inverseKey = [0]*26
+    for i,c in enumerate(key):
+        inverseKey[l2n(c)] = n2l(i)
 
-### To decrypt a single letter
-def subDecryptLetter(letter, key):
-    # return character corresponding to index of letter in key
-    return chr(key.index(letter.upper()) + ord('A'))
+    return ''.join(inverseKey)
 
-### To encrypt a line
+""" Function to encrypt using given key """
 def subEncrypt(line, key):
-    return ''.join([subEncryptLetter(c, key) for c in line])
+    return ''.join([ key[l2n(c)] for c in line ])
 
-### To decrypt a line
+""" Function to decrypt by encrypting using inverse key """
 def subDecrypt(line, key):
-    return ''.join([subDecryptLetter(d, key) for d in line])
+    return subEncrypt(line, inverseKey(key))
 
 ### Main Function
 def main():
     # Arguments parsing
     parser = argparse.ArgumentParser()
     parser.add_argument("-m", "--mode", required=True, choices=['encrypt','decrypt'], help="Encrypt or Decrypt the file")
-    parser.add_argument("-k", "--key", required=True, help="File containing key")
+    parser.add_argument("-k", "--key", required=True, help="Key for encryption/decryption")
     parser.add_argument("-i", "--input-file", required=True, help="Input file with plaintext or ciphertext")
     parser.add_argument("-o", "--output-file", required=True, help="Output file name")
     args = parser.parse_args()
 
-    keyFile = open(args.key, "rt")
-    # [:-1] is to remove newline at end
-    key = keyFile.readline().upper()[:-1]
-
+    key = args.key.upper()
     if len(key) != 26:
         print("Key length should be 26")
         return

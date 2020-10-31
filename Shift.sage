@@ -69,7 +69,7 @@ def main():
             outputFile.write(shiftEncrypt(normalizedInput, args.shift) + "\n")
         elif args.mode == "decrypt":
             plaintext = shiftDecrypt(normalizedInput, args.shift)
-            outputFile.write(' '.join(split(plaintext)))
+            outputFile.write(' '.join(split(plaintext)) + '\n')
 
     inputFile.close()
     outputFile.close()
