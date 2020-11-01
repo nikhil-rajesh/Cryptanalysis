@@ -1,10 +1,12 @@
 import argparse
 import re
+""" Refer helper.py for details """
 from helper import normalize_input, split, wordlist
 
 def transpositionEncrypt(plaintext, keyList, nColumns):
     ciphertext = ""
     blockLength = 0
+    # block length is the key length or no.of Columns
     if keyList is not None:
         blockLength = len(keyList)
     else:
@@ -76,18 +78,28 @@ def attackTransposition(ciphertext):
             else:
                 break
 
+        # Generate all keys that are possible with that key length
         keys = Permutations(d).list()
         for key in keys:
             cost = 0
+            # decrypt using each key
             plaintext = transpositionDecrypt(ciphertext, key, len(key))
             plaintext = split(plaintext)
+            # find cost of each generated plaintext
             for word in plaintext:
                 if word.lower() in words:
                     cost += len(word)
-            possiblePlaintexts.append((cost/len(plaintext), ' '.join(plaintext)))
+            # The plaintext with lesser no of words are more probable
+            possiblePlaintexts.append([cost/len(plaintext), ' '.join(plaintext), key])
 
-    return possiblePlaintexts
-
+    # Plaintext with highest cost is the most probable one
+    possiblePlaintexts.sort(reverse=True, key = lambda x:x[0])
+    print("\nMost probable plaintexts are\n")
+    # Print top 3 outputs
+    for i in range(3):
+        print("Key: ", possiblePlaintexts[i][2])
+        print("Columns: ", len(possiblePlaintexts[i][2]))
+        print("Possible Plaintext: ", possiblePlaintexts[i][1])
 
 ### Main Function
 def main():
@@ -97,25 +109,14 @@ def main():
     parser.add_argument("-k", "--key", type=int, help="The Key string (string of integers)")
     parser.add_argument("-c", "--columns", type=int, help="No.of columns for encryption")
     parser.add_argument("-i", "--input-file", required=True, help="Input file with plaintext or ciphertext")
-    parser.add_argument("-o", "--output-file", required=True, help="Output file name")
     args = parser.parse_args()
 
     # changing key into uppercase
     inputFile = open(args.input_file, "rt")
-    outputFile = open(args.output_file, "wt")
-
     normalizedInput = normalize_input(inputFile.read())
 
     if args.mode == "analysis":
-        validPlaintexts = attackTransposition(normalizedInput);
-        validPlaintexts.sort(reverse=True, key = lambda x:x[0])
-        print("Most probable plaintexts are\n")
-        for p in validPlaintexts:
-            if validPlaintexts.index(p) < 3:
-                print(p[1])
-            outputFile.write(p[1] + '\n')
-        print("\nAll other combinations have been written to the output file in order of decreasing probability")
-
+        attackTransposition(normalizedInput);
     else:
         # either key or columsn or both should be given
         if (args.key is None) and (args.columns is None):
@@ -139,12 +140,17 @@ def main():
 
         #encrypt or decrypt depending on mode flag
         if args.mode == "encrypt":
-            outputFile.write(transpositionEncrypt(normalizedInput, keyList, args.columns) + "\n")
+            print("Plaintext: ", normalizedInput)
+            print("Key: ", keyList)
+            print("Columns: ", args.columns)
+            print("Plaintext: ", transpositionEncrypt(normalizedInput, keyList, args.columns))
         elif args.mode == "decrypt":
-            outputFile.write(transpositionDecrypt(normalizedInput, keyList, args.columns) + "\n")
+            print("Ciphertext: ", normalizedInput)
+            print("Key: ", keyList)
+            print("Columns: ", args.columns)
+            print("Plaintext: ", transpositionDecrypt(normalizedInput, keyList, args.columns))
 
     inputFile.close()
-    outputFile.close()
 
 if __name__ == '__main__':
     main()

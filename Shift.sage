@@ -1,78 +1,126 @@
 import argparse
+import string
 import re
+""" Refer helper.py for details """
 from helper import normalize_input, split, l2n, n2l, wordlist
 
-### To encrypt a single letter
 def shiftEncryptLetter(letter, shift):
-    # (a + shift)%26
-    return n2l(l2n(letter) + shift)
+    """ Convert letter to corresponding number (0-25) and add the shift
+    value to it and convert the number back to ASCII """
+    return n2l(l2n(letter) + shift%26)
 
-### To decrypt a single letter
 def shiftDecryptLetter(letter, shift):
-    # do encryption with additive inverse of shift
-    return shiftEncryptLetter(letter, 26 - shift)
+    """ Decryption can be done by Encrypting using the additivine
+    Inverse of the key """
+    return shiftEncryptLetter(letter, 26 - shift%26)
 
-### To encrypt a line
 def shiftEncrypt(line, shift):
+    """ For each character in the given line, do encryption """
     return ''.join([shiftEncryptLetter(c,shift) for c in line])
 
-### To decrypt a line
 def shiftDecrypt(line, shift):
+    """ For each character in the given line, do decryption """
     return ''.join([shiftDecryptLetter(d,shift) for d in line])
 
-def attackShift(ciphertext):
-    #Open Dictionary of words
+def attackShift_brute(ciphertext):
     words = wordlist()
     possiblePlaintexts = []
 
+    """ For each value from 0-25, decrypt the given ciphertext """
     for key in range(26):
         plaintext = shiftDecrypt(ciphertext, key)
+        """ Split the generated plaintext into possible words """
         plaintext = split(plaintext)
         cost = 0
+        """ If a word is present in wordlist, cost is incremented by
+        word length """
         for word in plaintext:
             if word.lower() in words:
                 cost += len(word)
-        possiblePlaintexts.append((cost/len(plaintext), ' '.join(plaintext)))
+        """ Append the cost, plaintext and key to the array """
+        possiblePlaintexts.append([cost/len(plaintext), ' '.join(plaintext), key])
 
-    return possiblePlaintexts
+    """ Sort array based on cost """
+    possiblePlaintexts.sort(reverse=True, key = lambda x:x[0])
+    print("\nMost probable plaintexts(with probabilistic spaces added) are\n")
+
+    """ Print elements with the largest cost """
+    for i in range(3):
+        print("Key: ", possiblePlaintexts[i][2])
+        print("Plaintext: ", possiblePlaintexts[i][1])
+    return
+
+def attackShift_kwnPt(ciphertext):
+    """ Accept known plaintext """
+    knownPt = input("Enter known Plaintext: ")
+    knownCt = input("Enter corresponding Ciphertext: ")
+
+    """ Error check for empty input """
+    if knownPt == '' or knownCt == '':
+        print("You entered an empty string")
+
+    """ First character of plaintext - First character of ciphertext is the key """
+    key = (l2n(knownCt[0]) - l2n(knownPt[0]) + 26)%26
+    print("Key: ", key)
+    print("Plaintext: ", shiftDecrypt(ciphertext, key))
+
+def findFreq(text):
+    freqList = []
+    """ Find the percentage of occurence of each character in string """
+    for c in string.ascii_uppercase:
+        freqList.append((c, round((text.count(c)/len(text))*100, 2)))
+    return freqList
+
+def attackShift_freq(ciphertext):
+    """ Find frequency of each character """
+    freqList = findFreq(ciphertext)
+    """ Sort based on highest frequency """
+    freqList.sort(reverse = True,key = lambda x: x[1])  
+    """ Highest frequenct element will be 'E', generate key from that """
+    predictedKey = (l2n(freqList[0][0]) - ord('E') + 26)%26
+    print("Key: ", predictedKey)
+    print("Plaintext: ", shiftDecrypt(ciphertext, predictedKey))
 
 ### Main Function
 def main():
     # Arguments parsing
     parser = argparse.ArgumentParser()
-    parser.add_argument("-m", "--mode", required=True, choices=['encrypt','decrypt','analysis'], help="Encrypt or Decrypt the file")
-    parser.add_argument("-s", "--shift", type=int, help="Shift Value")
+    parser.add_argument("-m", "--mode", required=True, choices=['encrypt','decrypt','analysis'])
+    parser.add_argument("-k", "--key", type=int, help="Shift Key Value")
     parser.add_argument("-i", "--input-file", required=True, help="Input file with plaintext or ciphertext")
-    parser.add_argument("-o", "--output-file", required=True, help="Output file name")
     args = parser.parse_args()
 
     inputFile = open(args.input_file, "rt")
-    outputFile = open(args.output_file, "wt")
-
     normalizedInput = normalize_input(inputFile.read())
 
     if args.mode == 'analysis':
-        validPlaintexts = attackShift(normalizedInput);
-        validPlaintexts.sort(reverse=True, key = lambda x:x[0])
-        print("Most probable plaintexts are\n")
-        for p in validPlaintexts:
-            if validPlaintexts.index(p) < 3:
-                print(p[1])
-            outputFile.write(p[1] + '\n')
-        print("\nAll other combinations have been written to the output file in order of decreasing probability")
+        print("1. BruteForce (Ciphertext only)")
+        print("2. Freq Analysis (Ciphertext only)")
+        print("3. Known Plaintext")
+        choice = input("Enter your choice: ")
+        if choice == '1':
+            attackShift_brute(normalizedInput)
+        elif choice == '2':
+            attackShift_freq(normalizedInput)
+        elif choice == '3':
+            attackShift_kwnPt(normalizedInput)
+        else:
+            print("Invalid Choice")
 
-    elif args.shift is None:
+    elif args.key is None:
         print("No Shift Key provided")
     else:
         #encrypt or decrypt depending on mode flag
         if args.mode == "encrypt":
-            outputFile.write(shiftEncrypt(normalizedInput, args.shift) + "\n")
+            print("Plaintext: ", normalizedInput)
+            print("Key: ", args.key)
+            print("Ciphertext: ", shiftEncrypt(normalizedInput, args.key))
         elif args.mode == "decrypt":
-            plaintext = shiftDecrypt(normalizedInput, args.shift)
-            outputFile.write(' '.join(split(plaintext)) + '\n')
+            print("Ciphertext: ", normalizedInput)
+            print("Key: ", args.key)
+            print("Plaintext: ", shiftDecrypt(normalizedInput, args.key))
 
     inputFile.close()
-    outputFile.close()
 
 if __name__ == '__main__':
     main()

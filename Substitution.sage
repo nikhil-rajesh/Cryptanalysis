@@ -1,6 +1,7 @@
 import argparse
 import string
 import re
+""" Refer helper.py for details """
 from helper import normalize_input, l2n, n2l, split
 
 letterFreq = [
@@ -53,6 +54,7 @@ def generateKey(freqListCT, freqListPT, knownPT, knownCT):
             print(err)
             return err
 
+        """ Generate part of key from given plaintext """
         for i,c in enumerate(knownPT):
             possibleKey[l2n(c)] = knownCT[i]
 
@@ -69,11 +71,12 @@ def generateKey(freqListCT, freqListPT, knownPT, knownCT):
                 temp.append(i)
         freqListPT = temp
 
+    """ Sort and match frequencies of remaining character 
+    to generate the key """
     freqListCT.sort(key = lambda x: x[1])  
     freqListPT.sort(key = lambda x: x[1])
     for i,pair in enumerate(freqListPT):
         possibleKey[l2n(pair[0])] = freqListCT[i][0]
-    print(possibleKey)
     return ''.join(possibleKey)
 
 """ Generates the inverse of the key for decryption """
@@ -86,10 +89,12 @@ def inverseKey(key):
 
 """ Function to encrypt using given key """
 def subEncrypt(line, key):
+    """ Substitue corresponding character from key """
     return ''.join([ key[l2n(c)] for c in line ])
 
 """ Function to decrypt by encrypting using inverse key """
 def subDecrypt(line, key):
+    """ Substitue corresponding character from Inverse key """
     return subEncrypt(line, inverseKey(key))
 
 ### Main Function
@@ -99,11 +104,9 @@ def main():
     parser.add_argument("-m", "--mode", required=True, choices=['encrypt', 'decrypt', 'analysis'], help="Encrypt, Decryptor analyze the file")
     parser.add_argument("-k", "--key", help="Key for encryption/decryption")
     parser.add_argument("-i", "--input-file", required=True, help="Input file with plaintext or ciphertext")
-    parser.add_argument("-o", "--output-file", required=True, help="Output file name")
     args = parser.parse_args()
 
     inputFile = open(args.input_file, "rt")
-    outputFile = open(args.output_file, "wt")
 
     normalizedInput = normalize_input(inputFile.read())
 
@@ -115,20 +118,21 @@ def main():
         if choice == 'y':
             knownPT = input("Enter Known Plaintext: ")
             knownCT = input("Enter corresponding Ciphertext: ")
+            """ generate key based on input """
             possibleKey = generateKey(freqList, letterFreq, knownPT, knownCT)
         elif choice == 'n':
+            """ generate key based on input """
             possibleKey = generateKey(freqList, letterFreq, None, None)
-            print(possibleKey)
         else:
             print("Invalid Choice.")
             return
 
         """ Decrypt based on generated key """
         possiblePlaintext = subDecrypt(normalizedInput, possibleKey)
+        """ Probabilistically add spaces for plaintext """
         possiblePlaintext = ' '.join(split(possiblePlaintext))
-        print("Possible Plaintext is \n")
-        print(possiblePlaintext)
-        outputFile.write(possiblePlaintext + "\n")
+        print("Possible Key: ", possibleKey)
+        print("Possible Plaintext: ", possiblePlaintext)
 
     else:
         if args.key is None:
@@ -141,16 +145,15 @@ def main():
             return
         #encrypt or decrypt depending on mode flag
         if args.mode == "encrypt":
-            ciphertext = subEncrypt(normalizedInput, key) + "\n"
-            print(ciphertext)
-            outputFile.write(ciphertext)
+            print("Plaintext: ", normalizedInput)
+            print("Key: ", key)
+            print("Ciphertext: ", subEncrypt(normalizedInput, key))
         elif args.mode == "decrypt":
-            plaintext = subDecrypt(normalizedInput, key) + "\n"
-            print(plaintext)
-            outputFile.write(plaintext)
+            print("Ciphertext: ", normalizedInput)
+            print("Key: ", key)
+            print("Plaintext: ", subDecrypt(normalizedInput, key))
 
     inputFile.close()
-    outputFile.close()
 
 if __name__ == '__main__':
     main()
