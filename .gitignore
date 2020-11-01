@@ -1,6 +1,6 @@
 .ipynb_checkpoints/
 Final_Submit/
-*.py
+*.sage.py
 input
 in
 output
